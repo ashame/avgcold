@@ -55,7 +55,7 @@ class Bot extends EventEmitter {
     loadHandlers = async () => {
         const handlerFiles = fs
             .readdirSync(join(__dirname, './handlers'))
-            .filter(f => (f.endsWith('.js') || f.endsWith('.ts')) && !f.startsWith('Handler'));
+            .filter(f => (f.endsWith('.js') || f.endsWith('.ts')) && !f.startsWith('Handler') && !f.includes('.spec.') && !f.includes('.test.'));
         log('bot', `attempting to load ${handlerFiles.length} handlers`);
 
         for (const fileName of handlerFiles) {
