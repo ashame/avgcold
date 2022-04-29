@@ -12,7 +12,7 @@ class AvgColdHandler extends Handler {
             } catch (e) {
                 error('avg-cold-handler', 'failed to fetch message', e);
             }
-        if (msg.mentions.has(this.bot.client.user ?? '') || regex.exec(msg.content)) {
+        if (msg.author.id != this.bot.client.user?.id && msg.mentions.has(this.bot.client.user ?? '') || regex.exec(msg.content)) {
             try {
                 await msg.channel.send("<:avgcold:962151999971950622>");
             } catch (e) {
