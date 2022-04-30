@@ -7,7 +7,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Install modules
+    - name: Install Modules
       run: npm install
-    - name: Run tests
+    - name: Build Project
+      run: npm run build:ts
+    - name: Run Tests
       run: npm test
