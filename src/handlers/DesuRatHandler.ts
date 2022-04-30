@@ -11,7 +11,7 @@ class DesuRatHandler extends Handler {
                 error('desu-rat-handler', 'failed to fetch message');
                 return;
             }
-        if (msg.author.id == '712532570486865931') {
+        if (msg.author.id == this.bot.config.desuId) {
             log('desu-rat-handler', `desu msg received: ${msg.content}`);
             msg.react('🐀').catch(() => {
                 error('desu-rat-handler', 'failed to react to message');
