@@ -1,4 +1,4 @@
-import { Message } from 'discord.js';
+import { ClientUser, Message } from 'discord.js';
 import { error } from 'npmlog';
 import Handler from './Handler';
 
@@ -10,13 +10,16 @@ class AvgColdHandler extends Handler {
             try {
                 await msg.fetch();
             } catch (e) {
-                error('avg-cold-handler', 'failed to fetch message', e);
+                error('avg-cold-handler', 'failed to fetch message ' + e);
+                return;
             }
-        if (msg.author.id != this.bot.client.user?.id && msg.mentions.has(this.bot.client.user ?? '') || regex.exec(msg.content)) {
+        if (msg.author.id == (this.bot.client.user as ClientUser).id) return;
+        if (msg.mentions.has(this.bot.client.user as ClientUser)
+            || regex.exec(msg.content)) {
             try {
                 await msg.channel.send("<:avgcold:962151999971950622>");
             } catch (e) {
-                error('avg-cold-handler', 'failed to send message', e);
+                error('avg-cold-handler', 'failed to send message ' + e);
             }
         }
     };
@@ -29,7 +32,7 @@ class AvgColdHandler extends Handler {
     deregister = (): boolean => {
         if (!this.registered) return false;
         this.bot.client.off('message', this.handler);
-        return (this.registered = false);
+        return (this.registered = false) == false;
     }
 
 }
