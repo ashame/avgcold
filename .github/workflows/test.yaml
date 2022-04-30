@@ -1,8 +1,8 @@
-name: run-tests
+name: Test
 on: [push]
 
 jobs:
-  test:
+  Test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -11,9 +11,9 @@ jobs:
       with:
         node-version: 16
         cache: 'npm'
-    - name: Install node.js
+    - name: Install packages
       run: npm install
-    - name: Build Project
+    - name: Build project
       run: npm run build:ts
-    - name: Run Tests
+    - name: Run tests
       run: npm test
