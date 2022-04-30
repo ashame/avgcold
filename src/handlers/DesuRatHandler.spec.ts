@@ -8,6 +8,9 @@ describe('DesuRatHandler', () => {
     beforeEach(() => {
         bot = {};
         bot.client = new EventEmitter();
+        bot.config = {
+            desuId: '712532570486865931'
+        }
         handler = new DesuRatHandler(bot);
     })
 
