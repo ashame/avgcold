@@ -7,10 +7,12 @@ jest.mock('npmlog', () => {
     const verbose = jest.fn();
     const error = jest.fn();
     const info = jest.fn();
+    const warn = jest.fn();
     return {
         verbose,
         error,
         info,
+        warn,
     };
 })
 
@@ -60,7 +62,7 @@ describe('Bot', () => {
         })
 
         it('should attempt to load handlers upon initialization', () => {
-            const bot = new Bot('');
+            bot = new Bot('');
             bot.loadHandlers = jest.fn(() => Promise.resolve());
             bot.initialize();
             expect(bot.loadHandlers).toHaveBeenCalled();
@@ -98,6 +100,31 @@ describe('Bot', () => {
             expect(logger.verbose).toHaveBeenLastCalledWith('bot', 'failed to deregister handler Object');
             expect(process.exit).toHaveBeenCalledWith(0);
         });
+    });
+
+    describe('initialize', () => {
+        it('should only initialize upon reaching _initStage 0', () => {
+            bot = new Bot('');
+            bot.loadHandlers = jest.fn();
+            Object.assign(bot, { _initStage: 2 });
+            bot.initialize();
+            expect(bot.loadHandlers).not.toHaveBeenCalled();
+        });
+
+        it('should print a warning if _initStage drops below 0', () => {
+            bot = new Bot('');
+            bot.loadHandlers = jest.fn();
+            Object.assign(bot, { _initStage: -1 });
+            bot.initialize();
+            expect(logger.warn).toHaveBeenLastCalledWith('bot', 'initialization stage mismatch - current: -2, expected: >= 0');
+        });
+
+        it('should catch an error if initialization fails', () => {
+            bot = new Bot('');
+            bot.loadHandlers = jest.fn(() => Promise.reject());
+            bot.initialize();
+            expect(bot.loadHandlers).rejects.not.toThrowError();
+        })
     });
 
     describe('loadHandlers', () => {
@@ -147,6 +174,6 @@ describe('Bot', () => {
     afterEach(() => {
         Object.assign(process, { exit: jest.fn() });
         bot.destructor();
-        expect(process.exit).toBeCalled();
+        expect(process.exit).toBeCalledWith(0);
     })
 });

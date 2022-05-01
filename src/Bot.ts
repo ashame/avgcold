@@ -2,7 +2,7 @@ import { Client, Intents } from 'discord.js';
 import fs from 'fs';
 import { join } from 'path';
 import EventEmitter from 'events';
-import { verbose as log, error, info } from 'npmlog';
+import { verbose as log, error, info, warn } from 'npmlog';
 import Handler from './handlers/Handler';
 import BotOptions, { defaults as DEFAULT_CONFIG } from './BotOptions';
 
@@ -80,8 +80,14 @@ class Bot extends EventEmitter {
     }
 
     initialize = () => {
-        if (--this._initStage === 0)
-            this.loadHandlers().then(() => this.emit('ready'));
+        if (--this._initStage > 0) return;
+        if (this._initStage < 0) {
+            warn('bot', `initialization stage mismatch - current: ${this._initStage}, expected: >= 0`);
+            return;
+        }
+        this.loadHandlers()
+            .then(() => this.emit('ready'))
+            .catch((e) => error('bot', `error initializing bot: ${e}`));
     }
 
     login = async () => {
