@@ -12,10 +12,12 @@ class DesuRatHandler extends Handler {
                 return;
             }
         if (msg.author.id == this.bot.config.desuId) {
-            log('desu-rat-handler', `desu msg received: ${msg.content}`);
-            msg.react('🐀').catch(() => {
-                error('desu-rat-handler', 'failed to react to message');
-            });
+            const random = Math.floor(Math.random() * 100);
+            log('desu-rat-handler', `desu msg received: ${msg.content}, random: ${random}`);
+            if (random < 15)
+                msg.react('🐀').catch(() => {
+                    error('desu-rat-handler', 'failed to react to message');
+                });
         }
     };
 
