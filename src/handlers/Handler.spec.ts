@@ -1,5 +1,5 @@
 import { EventEmitter } from 'stream';
-import Handler from './Handler'
+import Handler from './Handler';
 
 class DummyHandler extends Handler {
     handler = jest.fn();
@@ -15,11 +15,11 @@ describe('Handler', () => {
         bot = {};
         bot.client = new EventEmitter();
         handler = new DummyHandler(bot);
-    })
+    });
 
     describe('constructs a valid handler', () => {
         it('has a handler function', () => expect(handler.handler).toBeDefined());
         it('has a register function', () => expect(handler.register).toBeDefined());
         it('has a deregister function', () => expect(handler.deregister).toBeDefined());
-    })
-})
+    });
+});

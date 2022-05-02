@@ -6,7 +6,9 @@ let config;
 
 try {
     config = require('../config.json');
-} catch { }
+} catch {
+    logger.warn('bot', 'config.json either missing or corrupted, using default config');
+}
 
 if (token instanceof Error) throw token;
 
@@ -21,4 +23,4 @@ bot.login();
 
 bot.once('ready', () => {
     logger.info('bot', `Logged in as ${bot.client.user?.tag}`);
-})
+});

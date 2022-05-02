@@ -17,8 +17,8 @@ declare interface Bot {
 }
 
 class Bot extends EventEmitter {
-    private _initStage: number = 1;
-    private loggedIn: boolean = false;
+    private _initStage = 1;
+    private loggedIn = false;
     private readonly handlers: Handler[];
     private readonly token: string;
     readonly config: BotOptions;
@@ -57,7 +57,7 @@ class Bot extends EventEmitter {
         process.off('SIGINT', this.destructor);
         process.off('exit', this.destructor);
         process.exit(0);
-    }
+    };
 
     loadHandlers = async () => {
         const handlerFiles = fs
@@ -67,28 +67,34 @@ class Bot extends EventEmitter {
 
         for (const fileName of handlerFiles) {
             try {
-                const handler = new (require(join(__dirname, `./handlers/${fileName}`)).default)(this);
-                if (handler instanceof Handler) {
-                    handler.register() && this.handlers.push(handler);
-                };
-            } catch (e) {
-                error('bot', `error loading handler for file ${fileName}: ${e}`);
+                const handlerClass = await import(join(__dirname, `./handlers/${fileName}`));
+                const handler = new handlerClass.default(this);
+                if (handler instanceof Handler && handler.register()) {
+                    this.handlers.push(handler);
+                    log('bot', `loaded handler ${handler.constructor.name}`);
+                }
+            } catch (err) {
+                error('bot', `error loading handler for file ${fileName}: ${err}`);
             }
         }
         log('bot', `loaded ${this.handlers.length} handlers`);
         info('bot', `loaded handlers: ${this.handlers.map(h => h.constructor.name).join(', ')}`);
-    }
+    };
 
-    initialize = () => {
+    initialize = async () => {
         if (--this._initStage > 0) return;
         if (this._initStage < 0) {
             warn('bot', `initialization stage mismatch - current: ${this._initStage}, expected: >= 0`);
             return;
         }
-        this.loadHandlers()
-            .then(() => this.emit('ready'))
-            .catch((e) => error('bot', `error initializing bot: ${e}`));
-    }
+        try {
+            await this.loadHandlers();
+            this.emit('ready');
+        } catch (e) {
+            error('bot', `error initializing bot: ${e}`);
+            process.exit(1);
+        }
+    };
 
     login = async () => {
         if (this.loggedIn) return true;
@@ -98,7 +104,7 @@ class Bot extends EventEmitter {
             return false;
         }
         return (this.loggedIn = true);
-    }
+    };
 }
 
 export default Bot;
