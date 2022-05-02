@@ -1,7 +1,7 @@
 import Bot from '../Bot';
 
 abstract class Handler {
-    protected registered: boolean = false;
+    protected registered = false;
     abstract handler: (...args: any) => any;
     protected readonly bot: Bot;
     constructor(bot: Bot) {

@@ -14,7 +14,7 @@ jest.mock('npmlog', () => {
         info,
         warn,
     };
-})
+});
 
 jest.mock('fs', () => {
     const readdirSync = jest.fn().mockReturnValue(['Handler.ts', 'SampleHandler.ts', 'NotAHandler.ts']);
@@ -23,18 +23,16 @@ jest.mock('fs', () => {
         readdirSync,
         readFileSync,
     };
-})
+});
 
-jest.mock(require('path').join(__dirname, './handlers/SampleHandler.ts'), () => {
+jest.mock(`${__dirname}/handlers/SampleHandler.ts`, () => {
     class SampleHandler extends Handler {
         handler = jest.fn();
         register = jest.fn().mockResolvedValue(true);
         deregister = jest.fn().mockResolvedValue(true);
     }
-    return {
-        default: SampleHandler
-    }
-}, { virtual: true })
+    return SampleHandler;
+}, { virtual: true });
 
 describe('Bot', () => {
     let bot: Bot;
@@ -59,7 +57,7 @@ describe('Bot', () => {
             bot = new Bot('', { hello: 'world' });
             expect(bot.config).toBeDefined();
             expect(bot.config.hello).toBe('world');
-        })
+        });
 
         it('should attempt to load handlers upon initialization', () => {
             bot = new Bot('');
@@ -124,21 +122,21 @@ describe('Bot', () => {
             bot.loadHandlers = jest.fn(() => Promise.reject());
             bot.initialize();
             expect(bot.loadHandlers).rejects.not.toThrowError();
-        })
+        });
     });
 
     describe('loadHandlers', () => {
-        it('should retrieve and filter a list of handler files from ./handlers', () => {
+        it('should retrieve and filter a list of handler files from ./handlers', async () => {
             bot = new Bot('');
-            bot.initialize();
-            expect(fs.readdirSync).toBeCalledWith(require('path').join(__dirname, './handlers'));
+            await bot.initialize();
+            expect(fs.readdirSync).toBeCalledWith(`${__dirname}/handlers`);
             expect(logger.verbose).toBeCalledWith('bot', 'attempting to load 2 handlers');
         });
 
-        it('should attempt to load handler files that are an instance of the Handler class', () => {
+        it('should attempt to load handler files that are an instance of the Handler class', async () => {
             bot = new Bot('');
-            bot.initialize();
-            expect(fs.readdirSync).toBeCalledWith(require('path').join(__dirname, './handlers'));
+            await bot.initialize();
+            expect(fs.readdirSync).toBeCalledWith(`${__dirname}/handlers`);
             expect(logger.verbose).toBeCalledWith('bot', 'loaded 1 handlers');
         });
     });
@@ -160,7 +158,7 @@ describe('Bot', () => {
             });
             expect(await bot.login()).toBe(true);
             expect(await bot.login()).toBe(true);
-        })
+        });
 
         it('should return false if login fails', async () => {
             bot = new Bot('');
@@ -169,11 +167,11 @@ describe('Bot', () => {
             });
             expect(await bot.login()).toBe(false);
         });
-    })
+    });
 
     afterEach(() => {
         Object.assign(process, { exit: jest.fn() });
         bot.destructor();
         expect(process.exit).toBeCalledWith(0);
-    })
+    });
 });
