@@ -1,4 +1,5 @@
 import AvgColdHandler from './AvgColdHandler';
+import { defaults } from '../BotOptions';
 import { EventEmitter } from 'events';
 
 describe('AvgColdHandler', () => {
@@ -10,26 +11,27 @@ describe('AvgColdHandler', () => {
         bot.client = new EventEmitter();
         bot.client.user = {};
         bot.client.user.id = '12345';
+        bot.config = defaults;
         handler = new AvgColdHandler(bot);
-    })
+    });
 
     it('should return true on register', () => {
         expect(handler.register()).toBe(true);
-    })
+    });
 
     it('should return false on register the second time it\'s called', () => {
         expect(handler.register()).toBe(true);
         expect(handler.register()).toBe(false);
-    })
+    });
 
     it('should return false on deregister if register isn\'t called first', () => {
         expect(handler.deregister()).toBe(false);
-    })
+    });
 
     it('should return true on deregister if register is called first', () => {
         expect(handler.register()).toBe(true);
         expect(handler.deregister()).toBe(true);
-    })
+    });
 
     it('should attempt to fetch full message upon receiving a partial', () => {
         const msg: any = {};
@@ -45,7 +47,7 @@ describe('AvgColdHandler', () => {
         bot.client.emit('message', msg);
 
         expect(msg.fetch).toHaveBeenCalled();
-    })
+    });
 
     it('should catch an error if fetch fails', () => {
         const msg: any = {};
@@ -72,7 +74,7 @@ describe('AvgColdHandler', () => {
         bot.client.emit('message', msg);
 
         expect(msg.channel.send).not.toHaveBeenCalled();
-    })
+    });
 
     it('should do nothing if the message isn\'t from the bot, doesn\'t mention the bot, and doesn\'t match the regex', () => {
         const msg: any = {};
@@ -101,7 +103,7 @@ describe('AvgColdHandler', () => {
         handler.register();
         bot.client.emit('message', msg);
 
-        expect(msg.channel.send).toHaveBeenCalledWith('<:avgcold:962151999971950622>');
+        expect(msg.channel.send).toHaveBeenCalledWith(bot.config.avgcold);
     });
 
     it('should send a message if the message matches the regex', () => {
@@ -118,7 +120,7 @@ describe('AvgColdHandler', () => {
         for (const content of ['avgcold', 'avg cold', 'avg.cold', 'Avgcold']) {
             msg.content = content;
             bot.client.emit('message', msg);
-            expect(msg.channel.send).toHaveBeenCalledWith('<:avgcold:962151999971950622>');
+            expect(msg.channel.send).toHaveBeenCalledWith(bot.config.avgcold);
         }
     });
 
@@ -137,4 +139,4 @@ describe('AvgColdHandler', () => {
 
         expect(msg.channel.send).rejects.not.toThrowError();
     });
-})
+});

@@ -17,9 +17,9 @@ class AvgColdHandler extends Handler {
         if (msg.mentions.has(this.bot.client.user as ClientUser)
             || regex.exec(msg.content)) {
             log('avg-cold-handler', `avg cold tbh... [${msg.content}]`);
-            msg.channel.send("<:avgcold:962151999971950622>").catch((e) => {
+            msg.channel.send(this.bot.config.avgcold as string).catch((e) => {
                 error('avg-cold-handler', 'failed to send message ' + e);
-            })
+            });
         }
     };
 
@@ -27,13 +27,13 @@ class AvgColdHandler extends Handler {
         if (this.registered) return false;
         this.bot.client.on('message', this.handler);
         return (this.registered = true);
-    }
+    };
 
     deregister = (): boolean => {
         if (!this.registered) return false;
         this.bot.client.off('message', this.handler);
         return (this.registered = false) == false;
-    }
+    };
 
 }
 
