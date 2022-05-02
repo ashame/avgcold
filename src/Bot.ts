@@ -2,8 +2,9 @@ import { Client, Intents } from 'discord.js';
 import fs from 'fs';
 import { join } from 'path';
 import EventEmitter from 'events';
-import { verbose as log, error, info } from 'npmlog';
+import { verbose as log, error, info, warn } from 'npmlog';
 import Handler from './handlers/Handler';
+import BotOptions, { defaults as DEFAULT_CONFIG } from './BotOptions';
 
 interface Events {
     ready: () => void;
@@ -16,13 +17,14 @@ declare interface Bot {
 }
 
 class Bot extends EventEmitter {
-    private _initStage: number = 1;
-    private loggedIn: boolean = false;
+    private _initStage = 1;
+    private loggedIn = false;
     private readonly handlers: Handler[];
     private readonly token: string;
+    readonly config: BotOptions;
     readonly client: Client;
 
-    constructor(token: string) {
+    constructor(token: string, options?: BotOptions) {
         super();
         this.client = new Client({
             intents: [
@@ -35,10 +37,13 @@ class Bot extends EventEmitter {
         });
         this.handlers = [];
         this.client.once('ready', this.initialize);
-        this.token = token;
 
-        process.on('SIGINT', () => this.destructor());
-        process.on('exit', () => this.destructor());
+        this.token = token;
+        this.config = Object.assign({}, DEFAULT_CONFIG, options);
+        log('bot', `${options ? 'Custom' : 'Default'} config options loaded`);
+
+        process.on('SIGINT', this.destructor);
+        process.on('exit', this.destructor);
     }
 
     destructor = () => {
@@ -49,8 +54,10 @@ class Bot extends EventEmitter {
             else
                 log('bot', `failed to deregister handler ${handler.constructor.name}`);
         }
+        process.off('SIGINT', this.destructor);
+        process.off('exit', this.destructor);
         process.exit(0);
-    }
+    };
 
     loadHandlers = async () => {
         const handlerFiles = fs
@@ -60,28 +67,44 @@ class Bot extends EventEmitter {
 
         for (const fileName of handlerFiles) {
             try {
-                const handler = new (require(join(__dirname, `./handlers/${fileName}`)).default)(this);
-                if (handler instanceof Handler) {
-                    handler.register() && this.handlers.push(handler);
-                };
-            } catch (e) {
-                error('bot', `error loading handler for file ${fileName}`, e);
+                const handlerClass = await import(join(__dirname, `./handlers/${fileName}`));
+                const handler = new handlerClass.default(this);
+                if (handler instanceof Handler && handler.register()) {
+                    this.handlers.push(handler);
+                    log('bot', `loaded handler ${handler.constructor.name}`);
+                }
+            } catch (err) {
+                error('bot', `error loading handler for file ${fileName}: ${err}`);
             }
         }
         log('bot', `loaded ${this.handlers.length} handlers`);
         info('bot', `loaded handlers: ${this.handlers.map(h => h.constructor.name).join(', ')}`);
-    }
+    };
 
-    initialize = () => {
-        if (--this._initStage === 0)
-            this.loadHandlers().then(() => this.emit('ready'));
-    }
+    initialize = async () => {
+        if (--this._initStage > 0) return;
+        if (this._initStage < 0) {
+            warn('bot', `initialization stage mismatch - current: ${this._initStage}, expected: >= 0`);
+            return;
+        }
+        try {
+            await this.loadHandlers();
+            this.emit('ready');
+        } catch (e) {
+            error('bot', `error initializing bot: ${e}`);
+            process.exit(1);
+        }
+    };
 
     login = async () => {
         if (this.loggedIn) return true;
-        await this.client.login(this.token);
+        try {
+            await this.client.login(this.token);
+        } catch {
+            return false;
+        }
         return (this.loggedIn = true);
-    }
+    };
 }
 
 export default Bot;

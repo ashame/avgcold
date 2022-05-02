@@ -11,25 +11,27 @@ class DesuRatHandler extends Handler {
                 error('desu-rat-handler', 'failed to fetch message');
                 return;
             }
-        if (msg.author.id == '712532570486865931') {
-            log('desu-rat-handler', `desu msg received: ${msg.content}`);
-            msg.react('🐀').catch(() => {
-                error('desu-rat-handler', 'failed to react to message');
-            })
+        if (msg.author.id == this.bot.config.desuId) {
+            const random = Math.floor(Math.random() * 100);
+            log('desu-rat-handler', `desu msg received: ${msg.content}, random: ${random}`);
+            if (random < 15)
+                msg.react('🐀').catch(() => {
+                    error('desu-rat-handler', 'failed to react to message');
+                });
         }
-    }
+    };
 
     register = (): boolean => {
         if (this.registered) return false;
         this.bot.client.on('message', this.handler);
         return (this.registered = true);
-    }
+    };
 
     deregister = (): boolean => {
         if (!this.registered) return false;
         this.bot.client.off('message', this.handler);
         return (this.registered = false) == false;
-    }
+    };
 }
 
 export default DesuRatHandler;
