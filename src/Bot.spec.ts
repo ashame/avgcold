@@ -1,7 +1,6 @@
 import Bot from './Bot';
 import logger from 'npmlog';
 import fs from 'fs';
-import { join } from 'path';
 import Handler from './handlers/Handler';
 
 jest.mock('npmlog', () => {
@@ -26,7 +25,7 @@ jest.mock('fs', () => {
     };
 });
 
-jest.mock(join(__dirname, './handlers/SampleHandler.ts'), () => {
+jest.mock(`${__dirname}/handlers/SampleHandler.ts`, () => {
     class SampleHandler extends Handler {
         handler = jest.fn();
         register = jest.fn().mockResolvedValue(true);
@@ -130,14 +129,14 @@ describe('Bot', () => {
         it('should retrieve and filter a list of handler files from ./handlers', async () => {
             bot = new Bot('');
             await bot.initialize();
-            expect(fs.readdirSync).toBeCalledWith(join(__dirname, './handlers'));
+            expect(fs.readdirSync).toBeCalledWith(`${__dirname}/handlers`);
             expect(logger.verbose).toBeCalledWith('bot', 'attempting to load 2 handlers');
         });
 
         it('should attempt to load handler files that are an instance of the Handler class', async () => {
             bot = new Bot('');
             await bot.initialize();
-            expect(fs.readdirSync).toBeCalledWith(join(__dirname, './handlers'));
+            expect(fs.readdirSync).toBeCalledWith(`${__dirname}/handlers`);
             expect(logger.verbose).toBeCalledWith('bot', 'loaded 1 handlers');
         });
     });

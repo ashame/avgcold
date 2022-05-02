@@ -73,6 +73,8 @@ describe('DesuRatHandler', () => {
         msg.author.id = '712532570486865931';
         msg.content = 'desu is a rat';
         msg.react = jest.fn(() => new Promise(resolve => resolve(true)));
+        Math.random = jest.fn().mockReturnValue(0.1);
+        console.log({ __dirname });
 
         handler.register();
         bot.client.emit('message', msg);
